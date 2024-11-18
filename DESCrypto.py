@@ -25,22 +25,21 @@ class DESCrypto:
         return get_random_bytes(DESCrypto.DES_KEY_SIZE)
 
     @staticmethod
-    def encrypt(data: str, key: bytes) -> dict:
+    def encrypt(data: str, key: bytes, iv: bytes) -> str:
         """Шифрование данных с использованием DES."""
         if len(key) != DESCrypto.DES_KEY_SIZE:
             raise ValueError("Ключ должен быть длиной 8 байт.")
-        cipher = DES.new(key, DES.MODE_CBC)
-        iv = cipher.iv  # Инициализационный вектор
+        cipher = DES.new(key, DES.MODE_CBC, iv)
         padded_data = DESCrypto.pad_data(data.encode())
         encrypted_data = cipher.encrypt(padded_data)
-        return {"iv": iv.hex(), "encrypted_data": encrypted_data.hex()}
+        return encrypted_data.hex()
 
     @staticmethod
-    def decrypt(encrypted_data: str, iv: str, key: bytes) -> str:
+    def decrypt(encrypted_data: str, key: bytes, iv: bytes) -> str:
         """Расшифрование данных с использованием DES."""
         if len(key) != DESCrypto.DES_KEY_SIZE:
             raise ValueError("Ключ должен быть длиной 8 байт.")
-        cipher = DES.new(key, DES.MODE_CBC, iv=bytes.fromhex(iv))
+        cipher = DES.new(key, DES.MODE_CBC, iv)
         decrypted_padded_data = cipher.decrypt(bytes.fromhex(encrypted_data))
         return DESCrypto.unpad_data(decrypted_padded_data).decode()
 
@@ -49,8 +48,10 @@ class DESCrypto:
 if __name__ == "__main__":
     test_data = "Пример123!@#Test"
     key = DESCrypto.generate_key()
+    iv = get_random_bytes(DESCrypto.DES_KEY_SIZE)
     print("Generated Key:", key.hex())
-    encrypted = DESCrypto.encrypt(test_data, key)
+    print("Generated IV:", iv.hex())
+    encrypted = DESCrypto.encrypt(test_data, key, iv)
     print("Encrypted Data:", encrypted)
-    decrypted = DESCrypto.decrypt(encrypted["encrypted_data"], encrypted["iv"], key)
+    decrypted = DESCrypto.decrypt(encrypted, key, iv)
     print("Decrypted Data:", decrypted)  # Ожидаемый вывод: исходная строка `test_data`
