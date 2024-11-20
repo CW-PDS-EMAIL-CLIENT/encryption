@@ -15,7 +15,7 @@ class DigitalSignature:
         return private_key, public_key
 
     @staticmethod
-    def encrypt_des_key(des_key, public_key):
+    def encrypt_des_key(des_key: bytes, public_key: bytes) -> bytes:
         """Шифрование DES-ключа с использованием публичного ключа RSA"""
         rsa_key = RSA.import_key(public_key)
         cipher = PKCS1_OAEP.new(rsa_key)
@@ -23,7 +23,7 @@ class DigitalSignature:
         return encrypted_des_key
 
     @staticmethod
-    def decrypt_des_key(encrypted_des_key, private_key):
+    def decrypt_des_key(encrypted_des_key: bytes, private_key: bytes) -> bytes:
         """Расшифровка DES-ключа с использованием приватного ключа RSA"""
         rsa_key = RSA.import_key(private_key)
         cipher = PKCS1_OAEP.new(rsa_key)
@@ -31,18 +31,18 @@ class DigitalSignature:
         return des_key
 
     @staticmethod
-    def sign_data(message, des_key, private_key):
+    def sign_data(message: bytes, des_key: bytes, private_key: bytes) -> bytes:
         """Создание подписи для хэша сообщения и DES-ключа"""
-        h = MD5.new(message.encode() + des_key)
+        h = MD5.new(message + des_key)  # Используем байты напрямую
         rsa_key = RSA.import_key(private_key)
         signer = pkcs1_15.new(rsa_key)
         signature = signer.sign(h)
         return signature
 
     @staticmethod
-    def verify_signature(message, des_key, signature, public_key):
+    def verify_signature(message: bytes, des_key: bytes, signature: bytes, public_key: bytes) -> bool:
         """Проверка подписи с использованием публичного ключа"""
-        h = MD5.new(message.encode() + des_key)
+        h = MD5.new(message + des_key)  # Используем байты напрямую
         rsa_key = RSA.import_key(public_key)
         verifier = pkcs1_15.new(rsa_key)
         try:
