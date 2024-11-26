@@ -65,7 +65,7 @@ class SecureEmailService(SecureEmailServiceServicer):
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(f"Invalid argument: {e}")
             return Email()  # Пустой ответ
-        except Error as e:
+        except Exception as e:
             context.set_code(StatusCode.UNKNOWN)
             context.set_details(f"Unknown error: {e}")
             return Email()  # Пустой ответ
