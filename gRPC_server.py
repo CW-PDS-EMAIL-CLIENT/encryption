@@ -1,4 +1,7 @@
+from binascii import Error
+
 import grpc
+from grpc import StatusCode
 from concurrent import futures
 from secureemail_pb2 import KeyGenerationResponse, EncryptedEmail, Email
 from secureemail_pb2_grpc import SecureEmailServiceServicer, add_SecureEmailServiceServicer_to_server
@@ -46,15 +49,26 @@ class SecureEmailService(SecureEmailServiceServicer):
         private_key_encrypt = request.private_key_encrypt
         public_key_sign = request.public_key_sign
 
-        decrypted_content, decrypted_attachments = SecureEmail.verify_email(
-            iv,
-            encrypted_des_key,
-            signature,
-            encrypted_content,
-            encrypted_attachments,
-            private_key_encrypt,
-            public_key_sign
-        )
+        try:
+
+            decrypted_content, decrypted_attachments = SecureEmail.verify_email(
+                iv,
+                encrypted_des_key,
+                signature,
+                encrypted_content,
+                encrypted_attachments,
+                private_key_encrypt,
+                public_key_sign
+            )
+
+        except ValueError as e:
+            context.set_code(StatusCode.INVALID_ARGUMENT)
+            context.set_details(f"Invalid argument: {e}")
+            return Email()  # Пустой ответ
+        except Error as e:
+            context.set_code(StatusCode.UNKNOWN)
+            context.set_details(f"Unknown error: {e}")
+            return Email()  # Пустой ответ
 
         return Email(
             email_body=decrypted_content,
